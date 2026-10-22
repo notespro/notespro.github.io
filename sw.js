@@ -1,11 +1,14 @@
-/* NotesPro PWA Service Worker — cache-first for app shell, network-first not needed (fully offline) */
-const CACHE = "notes-v3";
+/* NotesPro Service Worker */
+const CACHE = "notespro-v4";
 const ASSETS = [
-  "./",
-  "./index.html",
-  "./manifest.webmanifest",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png"
+  "/",
+  "/index.html",
+  "/manifest.webmanifest",
+  "/icons/icon-192.png",
+  "/icons/icon-512.png",
+  "/icons/icon-192-maskable.png",
+  "/icons/icon-512-maskable.png",
+  "/icons/apple-touch-icon.png"
 ];
 
 self.addEventListener("install", (e) => {
@@ -23,21 +26,20 @@ self.addEventListener("activate", (e) => {
 });
 
 self.addEventListener("fetch", (e) => {
+  if (e.request.method !== "GET") return;
   const url = new URL(e.request.url);
-  // Only handle same-origin
   if (url.origin !== self.location.origin) return;
 
   e.respondWith(
     caches.match(e.request).then((cached) => {
       if (cached) return cached;
       return fetch(e.request).then((res) => {
-        // Cache successful GETs for future offline
-        if (e.request.method === "GET" && res.ok) {
+        if (res.ok) {
           const clone = res.clone();
           caches.open(CACHE).then((c) => c.put(e.request, clone));
         }
         return res;
-      }).catch(() => caches.match("./index.html"));
+      }).catch(() => caches.match("/index.html"));
     })
   );
 });
