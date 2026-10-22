@@ -172,6 +172,18 @@ button:disabled{opacity:.4;pointer-events:none}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* Install guide */
+#installGuide{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:120;align-items:flex-end;justify-content:center}
+#installGuide.show{display:flex}
+#installGuide .sheet{background:var(--card);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:20px 20px calc(var(--sb) + 24px);box-shadow:0 -4px 24px rgba(0,0,0,.2)}
+#installGuide h3{margin:0 0 8px;font-size:18px}
+#installGuide ol{margin:12px 0 16px;padding-left:20px;color:var(--fg);font-size:15px;line-height:1.7}
+#installGuide li{margin-bottom:6px}
+#installGuide .guide-close{width:100%;height:48px;border-radius:12px;background:var(--acc);color:#fff;font-weight:600;font-size:15px}
+#installBanner{display:none}
+#installBanner.show{display:flex}
+
 </style>
 </head>
 <body>
@@ -214,7 +226,7 @@ button:disabled{opacity:.4;pointer-events:none}
     </div>
     <div class="set-group">
       <label>App</label>
-      <button class="set-btn" id="btnInstall" style="display:none">Install app</button>
+      <button class="set-btn" id="btnInstall">Install app</button>
       <div class="set-row"><span style="color:var(--mut);font-size:13px">NotesPro · Fully local · Encrypted option · No tracking</span></div>
     </div>
   </div>
@@ -249,7 +261,7 @@ button:disabled{opacity:.4;pointer-events:none}
 </button>
 
 <div id="installBanner">
-  <p>Install NotesPro for quick access &amp; offline use</p>
+  <p>Install NotesPro on your home screen</p>
   <button class="install-btn" id="installBtn">Install</button>
   <button class="dismiss" id="installDismiss" aria-label="Dismiss">✕</button>
 </div>
@@ -277,6 +289,16 @@ button:disabled{opacity:.4;pointer-events:none}
     <button class="sheet-opt" id="optShare"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>Share</button>
     <button class="sheet-opt" id="optDuplicate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V4a2 2 0 0 1 2-2h10"/></svg>Duplicate note</button>
     <button class="sheet-opt danger" id="optDelete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>Delete note</button>
+  </div>
+</div>
+
+
+<div id="installGuide">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h3 id="guideTitle">Install NotesPro</h3>
+    <ol id="guideSteps"></ol>
+    <button class="guide-close" id="guideClose">Got it</button>
   </div>
 </div>
 
@@ -638,62 +660,15 @@ function showLock(mode = "unlock") {
 }
 
 /* ── PWA Install ── */
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  updateInstallUI();
-});
-
-window.addEventListener("appinstalled", () => {
-  deferredPrompt = null;
-  updateInstallUI();
-  toast("App installed");
-});
 
 
 
-$("#installBtn").onclick = triggerInstall;
-$("#btnInstall").onclick = triggerInstall;
-$("#installDismiss").onclick = () => {
-  $("#installBanner").classList.remove("show");
-  settings.installDismissed = true;
-  saveRaw(SETTINGS_KEY, settings);
-};
 
-// Show install UI even without beforeinstallprompt (manual guide)
-function updateInstallUI() {
-  const isStandalone = window.matchMedia("(display-mode: standalone)").matches
-    || window.navigator.standalone === true;
-  if (isStandalone) {
-    $("#installBanner").classList.remove("show");
-    $("#btnInstall").style.display = "none";
-    return;
-  }
-  // Always offer install from Settings
-  $("#btnInstall").style.display = "";
-  $("#btnInstall").textContent = deferredPrompt ? "Install app" : "How to install";
-  if (deferredPrompt && !settings.installDismissed) {
-    $("#installBanner").classList.add("show");
-  }
-}
 
-async function triggerInstall() {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    deferredPrompt = null;
-    $("#installBanner").classList.remove("show");
-    if (outcome === "accepted") toast("Installing…");
-    updateInstallUI();
-    return;
-  }
-  // Manual instructions
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  const msg = isIOS
-    ? "On iPhone: tap Share → Add to Home Screen"
-    : "In Chrome: tap ⋮ menu → Install app\n(or Add to Home screen)";
-  alert(msg);
-}
+
+
+
+
 
 /* ── Events ── */
 $("#add").onclick = async () => {
@@ -858,6 +833,105 @@ addEventListener("keydown", e => {
     q.focus();
   }
 });
+
+
+/* ── Cross-browser Install ── */
+function isStandalone() {
+  return window.matchMedia("(display-mode: standalone)").matches
+    || window.navigator.standalone === true
+    || document.referrer.includes("android-app://");
+}
+
+function getPlatform() {
+  const ua = navigator.userAgent || "";
+  if (/iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) return "ios";
+  if (/Android/i.test(ua)) return "android";
+  return "desktop";
+}
+
+function showInstallGuide() {
+  const platform = getPlatform();
+  const title = $("#guideTitle");
+  const steps = $("#guideSteps");
+  title.textContent = "Install NotesPro";
+  if (platform === "ios") {
+    steps.innerHTML = `
+      <li>Open this site in <b>Safari</b> (not Chrome)</li>
+      <li>Tap the <b>Share</b> button <span style="opacity:.7">□↑</span></li>
+      <li>Scroll and tap <b>Add to Home Screen</b></li>
+      <li>Tap <b>Add</b></li>`;
+  } else if (platform === "android") {
+    steps.innerHTML = `
+      <li>Tap the <b>⋮</b> menu (top right)</li>
+      <li>Tap <b>Install app</b> or <b>Add to Home screen</b></li>
+      <li>Confirm <b>Install</b></li>
+      <li>If you only see a Chrome badge on the icon, remove it and install again via <b>Install app</b></li>`;
+  } else {
+    steps.innerHTML = `
+      <li>Click the <b>install icon</b> in the address bar <span style="opacity:.7">⊕</span></li>
+      <li>Or open the browser menu → <b>Install NotesPro</b></li>
+      <li>Works best in Chrome, Edge, or Brave</li>`;
+  }
+  $("#installGuide").classList.add("show");
+}
+
+function updateInstallUI() {
+  if (isStandalone()) {
+    $("#installBanner").classList.remove("show");
+    $("#btnInstall").style.display = "none";
+    return;
+  }
+  $("#btnInstall").style.display = "";
+  $("#btnInstall").textContent = deferredPrompt ? "Install app" : "Install app";
+  // Banner: show if not dismissed (works with or without beforeinstallprompt)
+  if (!settings.installDismissed) {
+    $("#installBanner").classList.add("show");
+  }
+}
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  updateInstallUI();
+});
+
+window.addEventListener("appinstalled", () => {
+  deferredPrompt = null;
+  settings.installDismissed = true;
+  saveRaw(SETTINGS_KEY, settings);
+  updateInstallUI();
+  toast("App installed");
+});
+
+async function triggerInstall() {
+  if (deferredPrompt) {
+    try {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      if (outcome === "accepted") {
+        settings.installDismissed = true;
+        saveRaw(SETTINGS_KEY, settings);
+        toast("Installing…");
+      }
+    } catch (_) {}
+    updateInstallUI();
+    return;
+  }
+  showInstallGuide();
+}
+
+$("#installBtn").onclick = triggerInstall;
+$("#btnInstall").onclick = triggerInstall;
+$("#installDismiss").onclick = () => {
+  $("#installBanner").classList.remove("show");
+  settings.installDismissed = true;
+  saveRaw(SETTINGS_KEY, settings);
+};
+$("#guideClose").onclick = () => $("#installGuide").classList.remove("show");
+$("#installGuide").onclick = (e) => {
+  if (e.target === $("#installGuide")) $("#installGuide").classList.remove("show");
+};
 
 /* ── Service Worker ── */
 if ("serviceWorker" in navigator) {
