@@ -2,19 +2,20 @@
 <html lang="en" data-theme="system">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f0f0f" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="NotesPro">
-<meta name="description" content="A simple, fast, and private notes app by NotesPro — works fully offline">
+<meta name="apple-mobile-web-app-title" content="Jotpad">
+<meta name="description" content="Jotpad: a simple, fast, private notes app that works fully offline">
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'">
-<title>NotesPro</title>
-<link rel="manifest" href="/manifest.webmanifest">
-<link rel="icon" href="/icons/icon-192.png" type="image/png">
-<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<title>Jotpad</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>
 :root {
   --bg: #fafafa; --fg: #111; --mut: #6b6b6b; --line: #eaeaea;
@@ -227,14 +228,14 @@ button:disabled{opacity:.4;pointer-events:none}
     <div class="set-group">
       <label>App</label>
       <button class="set-btn" id="btnInstall">Install app</button>
-      <div class="set-row"><span style="color:var(--mut);font-size:13px">NotesPro · Fully local · Encrypted option · No tracking</span></div>
+      <div class="set-row"><span style="color:var(--mut);font-size:13px">Jotpad · Fully local · Encrypted option · No tracking</span></div>
     </div>
   </div>
 </div>
 
 <header class="header" id="header">
   <div class="header-row">
-    <h1>NotesPro</h1>
+    <h1>Jotpad</h1>
     <div class="header-actions">
       <button class="icon-btn" id="btnSettings" aria-label="Settings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
@@ -261,7 +262,7 @@ button:disabled{opacity:.4;pointer-events:none}
 </button>
 
 <div id="installBanner">
-  <p>Install NotesPro on your home screen</p>
+  <p>Install Jotpad on your home screen</p>
   <button class="install-btn" id="installBtn">Install</button>
   <button class="dismiss" id="installDismiss" aria-label="Dismiss">✕</button>
 </div>
@@ -296,7 +297,7 @@ button:disabled{opacity:.4;pointer-events:none}
 <div id="installGuide">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <h3 id="guideTitle">Install NotesPro</h3>
+    <h3 id="guideTitle">Install Jotpad</h3>
     <ol id="guideSteps"></ol>
     <button class="guide-close" id="guideClose">Got it</button>
   </div>
@@ -772,7 +773,7 @@ $("#btnExport").onclick = () => {
   const blob = new Blob([data], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `notes-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `jotpad-backup-${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
   URL.revokeObjectURL(a.href);
   toast("Exported");
@@ -853,7 +854,7 @@ function showInstallGuide() {
   const platform = getPlatform();
   const title = $("#guideTitle");
   const steps = $("#guideSteps");
-  title.textContent = "Install NotesPro";
+  title.textContent = "Install Jotpad";
   if (platform === "ios") {
     steps.innerHTML = `
       <li>Open this site in <b>Safari</b> (not Chrome)</li>
@@ -862,14 +863,14 @@ function showInstallGuide() {
       <li>Tap <b>Add</b></li>`;
   } else if (platform === "android") {
     steps.innerHTML = `
-      <li>Tap the <b>⋮</b> menu (top right)</li>
-      <li>Tap <b>Install app</b> or <b>Add to Home screen</b></li>
-      <li>Confirm <b>Install</b></li>
-      <li>If you only see a Chrome badge on the icon, remove it and install again via <b>Install app</b></li>`;
+      <li>Open this page in <b>Chrome</b></li>
+      <li>Tap the <b>⋮</b> menu, then <b>Install app</b></li>
+      <li>Do not choose <b>Add to Home screen</b>, it creates a plain shortcut</li>
+      <li>If only <b>Add to Home screen</b> is listed, reload the page once and check the menu again</li>`;
   } else {
     steps.innerHTML = `
       <li>Click the <b>install icon</b> in the address bar <span style="opacity:.7">⊕</span></li>
-      <li>Or open the browser menu → <b>Install NotesPro</b></li>
+      <li>Or open the browser menu → <b>Install Jotpad</b></li>
       <li>Works best in Chrome, Edge, or Brave</li>`;
   }
   $("#installGuide").classList.add("show");
@@ -882,7 +883,7 @@ function updateInstallUI() {
     return;
   }
   $("#btnInstall").style.display = "";
-  $("#btnInstall").textContent = deferredPrompt ? "Install app" : "Install app";
+  $("#btnInstall").textContent = "Install app";
   // Banner: show if not dismissed (works with or without beforeinstallprompt)
   if (!settings.installDismissed) {
     $("#installBanner").classList.add("show");
@@ -935,7 +936,7 @@ $("#installGuide").onclick = (e) => {
 
 /* ── Service Worker ── */
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {});
+  navigator.serviceWorker.register("sw.js").catch(() => {});
 }
 
 /* ── Init ── */

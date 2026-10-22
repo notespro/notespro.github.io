@@ -1,55 +1,33 @@
-# NotesPro — Private PWA
+# Jotpad
 
-A simple, fast, offline-first notes app you can install on your phone or desktop.
+Simple, fast, private notes. Works offline and installs as an app.
 
-**Live:** https://notespro.github.io
+Live: https://jotpad.github.io
 
 ## Features
 
-- Fully offline (Service Worker)
-- Installable as an app (PWA)
-- Optional passcode lock with **AES-256-GCM** encryption
-- Dark / light / system theme
-- Pin notes, search, export / import
-- Zero tracking — everything stays on your device
+- Offline (service worker)
+- Installable PWA
+- Optional passcode lock, AES-256-GCM, PBKDF2 key derivation
+- Light, dark, system theme
+- Pin, search, export, import
+- No tracking, no external requests
 
-## Deploy to GitHub Pages
+## Deploy
 
-1. Create organization **notespro** (or use your account).
-2. Create repository **notespro.github.io** (must be public).
-3. Upload all files from this folder to the repo root.
-4. Go to **Settings → Pages**.
-5. Source: **Deploy from a branch** → `main` → `/ (root)`.
-6. After a minute the app is live at:
+1. Create the organization `jotpad`.
+2. Create a public repository named `jotpad.github.io`.
+3. Upload the files in this folder to the repo root.
+4. Settings, Pages, Deploy from a branch, `main`, `/ (root)`.
+5. Open https://jotpad.github.io
 
-   **https://notespro.github.io**
+## Install on Android
 
-7. Open the URL → tap **Install** (or browser menu → Add to Home Screen).
+Use Chrome, menu, **Install app**. Do not use **Add to Home screen**, it makes a shortcut.
+If you installed a shortcut before, remove it first, then clear site data for the domain and reload.
 
-### Install requirements
+## Local test
 
-- HTTPS (GitHub Pages provides this)
-- Valid manifest + icons (included)
-- Service Worker (included)
-- Chrome / Edge / Samsung Internet show the Install button
-- iOS Safari: Share → **Add to Home Screen**
-
-## Security
-
-| Layer | Details |
-|-------|---------|
-| Storage | Notes stay in `localStorage` on your device only |
-| Encryption | When lock is on: AES-256-GCM, key via PBKDF2 (210k iterations) from your PIN |
-| Passcode | Never stored in plain text — only a salted hash |
-| Network | No analytics, no external requests, strict CSP |
-| XSS | All note content is HTML-escaped before display |
-
-## Local testing
-
-```bash
-npx serve .
-# or
+```
 python -m http.server 8080
 ```
-
-Open `http://localhost:8080`
