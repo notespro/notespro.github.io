@@ -641,28 +641,16 @@ function showLock(mode = "unlock") {
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  if (!settings.installDismissed) $("#installBanner").classList.add("show");
-  $("#btnInstall").style.display = "";
+  updateInstallUI();
 });
 
 window.addEventListener("appinstalled", () => {
   deferredPrompt = null;
-  $("#installBanner").classList.remove("show");
-  $("#btnInstall").style.display = "none";
+  updateInstallUI();
   toast("App installed");
 });
 
-async function triggerInstall() {
-  if (!deferredPrompt) {
-    toast("Install not available — use browser menu");
-    return;
-  }
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  deferredPrompt = null;
-  $("#installBanner").classList.remove("show");
-  if (outcome === "accepted") toast("Installing…");
-}
+
 
 $("#installBtn").onclick = triggerInstall;
 $("#btnInstall").onclick = triggerInstall;
@@ -671,6 +659,41 @@ $("#installDismiss").onclick = () => {
   settings.installDismissed = true;
   saveRaw(SETTINGS_KEY, settings);
 };
+
+// Show install UI even without beforeinstallprompt (manual guide)
+function updateInstallUI() {
+  const isStandalone = window.matchMedia("(display-mode: standalone)").matches
+    || window.navigator.standalone === true;
+  if (isStandalone) {
+    $("#installBanner").classList.remove("show");
+    $("#btnInstall").style.display = "none";
+    return;
+  }
+  // Always offer install from Settings
+  $("#btnInstall").style.display = "";
+  $("#btnInstall").textContent = deferredPrompt ? "Install app" : "How to install";
+  if (deferredPrompt && !settings.installDismissed) {
+    $("#installBanner").classList.add("show");
+  }
+}
+
+async function triggerInstall() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    $("#installBanner").classList.remove("show");
+    if (outcome === "accepted") toast("Installing…");
+    updateInstallUI();
+    return;
+  }
+  // Manual instructions
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const msg = isIOS
+    ? "On iPhone: tap Share → Add to Home Screen"
+    : "In Chrome: tap ⋮ menu → Install app\n(or Add to Home screen)";
+  alert(msg);
+}
 
 /* ── Events ── */
 $("#add").onclick = async () => {
@@ -844,6 +867,7 @@ if ("serviceWorker" in navigator) {
 /* ── Init ── */
 (async () => {
   buildPinPad();
+  updateInstallUI();
   $("#togLock").classList.toggle("on", settings.lockEnabled);
   $("#btnChangePin").style.display = settings.lockEnabled ? "" : "none";
 
